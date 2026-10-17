@@ -12,7 +12,7 @@ export class CoachError extends Error {
   }
 }
 
-function buildBody(system, input, { nativeSystem, jsonMode }) {
+function buildBody(system, input, { nativeSystem, jsonMode, minimalThinking }) {
   const userText = nativeSystem ? input : `${system}\n\n---\n\n${input}`;
   const body = {
     contents: [{ role: "user", parts: [{ text: userText }] }],
@@ -20,6 +20,8 @@ function buildBody(system, input, { nativeSystem, jsonMode }) {
   };
   if (nativeSystem) body.systemInstruction = { parts: [{ text: system }] };
   if (jsonMode) body.generationConfig.responseMimeType = "application/json";
+  // Gemma 4 can "think" before answering; minimal thinking makes replies much faster.
+  if (minimalThinking) body.generationConfig.thinkingConfig = { thinkingLevel: "MINIMAL" };
   return body;
 }
 
@@ -108,6 +110,7 @@ export async function askGemmaJson(system, input, opts = {}) {
   const url = `${API_BASE}/${encodeURIComponent(model)}:generateContent`;
 
   const attempts = [
+    { nativeSystem: true, jsonMode: true, minimalThinking: true },
     { nativeSystem: true, jsonMode: true },
     { nativeSystem: false, jsonMode: false },
   ];

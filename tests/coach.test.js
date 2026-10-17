@@ -42,6 +42,7 @@ test("analyze: sends key in header, uses system instruction + JSON mode, normali
   assert.equal(f.calls[0].headers["x-goog-api-key"], "k");
   assert.ok(f.calls[0].body.systemInstruction);
   assert.equal(f.calls[0].body.generationConfig.responseMimeType, "application/json");
+  assert.equal(f.calls[0].body.generationConfig.thinkingConfig.thinkingLevel, "MINIMAL");
   assert.equal(out.dimensions.length, 7);
   assert.deepEqual(out.dimensions.map((d) => d.key), ["goal", "context", "audience", "format", "constraints", "examples", "success"]);
   assert.equal(out.dimensions[1].status, "missing"); // filled default
@@ -52,15 +53,15 @@ test("analyze: sends key in header, uses system instruction + JSON mode, normali
 });
 
 test("analyze: falls back to merged prompt when API rejects system/JSON options", async () => {
-  const f = fakeFetch([
-    { status: 400, data: { error: { message: "Developer instruction is not enabled" } } },
-    reply("```json\n" + JSON.stringify(sampleAnalysis) + "\n```"),
-  ]);
+  const bad = { status: 400, data: { error: { message: "Unknown field" } } };
+  const f = fakeFetch([bad, bad, reply("```json\n" + JSON.stringify(sampleAnalysis) + "\n```")]);
   const out = await analyzePrompt("draw a cat", { apiKey: "k", fetchImpl: f });
-  assert.equal(f.calls.length, 2);
-  assert.equal(f.calls[1].body.systemInstruction, undefined);
-  assert.equal(f.calls[1].body.generationConfig.responseMimeType, undefined);
-  assert.match(f.calls[1].body.contents[0].parts[0].text, /You are Prompt Coach/);
+  assert.equal(f.calls.length, 3);
+  assert.equal(f.calls[1].body.generationConfig.thinkingConfig, undefined);
+  assert.equal(f.calls[1].body.generationConfig.responseMimeType, "application/json");
+  assert.equal(f.calls[2].body.systemInstruction, undefined);
+  assert.equal(f.calls[2].body.generationConfig.responseMimeType, undefined);
+  assert.match(f.calls[2].body.contents[0].parts[0].text, /You are Prompt Coach/);
   assert.equal(out.score, 3);
 });
 
@@ -107,7 +108,7 @@ test("rewrite: passes answers to the model and normalizes changes", async () => 
 });
 
 test("rewrite: empty rewrite is an error", async () => {
-  const f = fakeFetch([reply({ rewritten: "" }), reply({ rewritten: "" })]);
+  const f = fakeFetch([reply({ rewritten: "" }), reply({ rewritten: "" }), reply({ rewritten: "" })]);
   await assert.rejects(rewritePrompt("x", [], [], { apiKey: "k", fetchImpl: f }), (e) => e.code === "bad_json");
 });
 

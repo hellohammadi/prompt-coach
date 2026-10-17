@@ -4,29 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prompt Coach</title>
-<meta name="description" content="Check your AI prompt against a 7-point rubric, answer a few questions, and get a stronger prompt. Powered by Gemma 4.">
+<meta name="description" content="Write better AI prompts: see what's missing, answer a few quick questions, and get an improved prompt. Powered by Gemma 4.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232E54E8'/%3E%3Cpath d='M9 22l9-12 2 6 3-2-9 12-2-6z' fill='%23FFE066'/%3E%3C/svg%3E">
 <style>
 :root {
-  --paper: #F3F5F8;
-  --surface: #FFFFFF;
-  --ink: #17202B;
-  --muted: #5B6675;
-  --line: #D7DCE3;
-  --accent: #2E54E8;
-  --accent-ink: #FFFFFF;
-  --accent-soft: #E6ECFF;
-  --mark: #FFE066;
-  --mark-soft: #FFF4B8;
-  --good: #1E8A57;
-  --weak: #B86E00;
-  --missing: #C23B2A;
-  --good-bg: #E3F4EA;
-  --weak-bg: #FFF1D6;
-  --missing-bg: #FBE4E0;
+  --paper: #F3F5F8; --surface: #FFFFFF; --ink: #17202B; --muted: #5B6675; --line: #D7DCE3;
+  --accent: #2E54E8; --accent-ink: #FFFFFF; --accent-soft: #E6ECFF;
+  --mark: #FFE066; --mark-soft: #FFF4B8;
+  --good: #1E8A57; --weak: #B86E00; --missing: #C23B2A;
+  --good-bg: #E3F4EA; --weak-bg: #FFF1D6; --missing-bg: #FBE4E0;
   --display: "Bricolage Grotesque", system-ui, sans-serif;
   --body: "Atkinson Hyperlegible", system-ui, sans-serif;
   color-scheme: light;
@@ -48,56 +37,61 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: 76px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 var(--body); }
 button, textarea, input { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 a { color: var(--accent); }
 
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
 h2.title { font-family: var(--display); font-weight: 800; letter-spacing: -0.015em; font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.1; margin: 0 0 10px; }
 .sub { color: var(--muted); margin: 0; max-width: 64ch; }
-section.block { padding: 56px 0 0; }
+section.block { padding: 72px 0 0; }
+.kicker { display: inline-block; font-size: .9rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
 
-/* Top bar */
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; }
-.logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.2rem; text-decoration: none; color: var(--ink); }
-.logo svg { width: 30px; height: 30px; flex: none; }
-.pill { font-size: .85rem; padding: 4px 12px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); white-space: nowrap; }
-.pill b { color: var(--ink); }
+/* Sticky nav */
+.nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
+.logo { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.15rem; text-decoration: none; color: var(--ink); }
+.logo svg { width: 28px; height: 28px; flex: none; }
+.nav-links { display: flex; gap: 4px; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: .95rem; padding: 6px 10px; border-radius: 8px; }
+.nav-links a:hover { color: var(--ink); background: var(--surface); }
+.nav-links a.cta { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+@media (max-width: 760px) { .nav-links a:not(.cta) { display: none; } }
 
-/* Hero */
-.hero { padding: 36px 0 0; display: grid; gap: 36px; }
-.hero-text { display: grid; gap: 8px 48px; }
-@media (min-width: 980px) { .hero-text { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: center; } }
-.hero h1 {
-  font-family: var(--display); font-weight: 800; letter-spacing: -0.03em;
-  font-size: clamp(2.4rem, 6vw, 4.2rem); line-height: .98; margin: 0;
-}
-.hero h1 .hl { background: linear-gradient(transparent 60%, var(--mark) 60%, var(--mark) 92%, transparent 92%); padding: 0 .06em; }
-.hero .lede { margin: 0; color: var(--muted); font-size: 1.12rem; max-width: 46ch; }
-.hero-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
-
+/* Buttons */
 .btn { border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
 .btn-primary { background: var(--accent); color: var(--accent-ink); }
 .btn-primary:hover { filter: brightness(1.07); }
 .btn-ghost { background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
 .btn-ghost:hover { border-color: var(--accent); }
+.btn-link { background: none; border: 0; padding: 0; color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .btn[disabled] { opacity: .55; cursor: not-allowed; }
-.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; flex: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Before / after explainer */
+/* Hero */
+.hero { padding: 48px 0 0; display: grid; gap: 40px; }
+.hero-text { display: grid; gap: 16px 48px; }
+@media (min-width: 980px) { .hero-text { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: center; } }
+.hero h1 { font-family: var(--display); font-weight: 800; letter-spacing: -0.03em; font-size: clamp(2.4rem, 6vw, 4.2rem); line-height: .98; margin: 0; }
+.hero h1 .hl { background: linear-gradient(transparent 60%, var(--mark) 60%, var(--mark) 92%, transparent 92%); padding: 0 .06em; }
+.hero .lede { margin: 0; color: var(--muted); font-size: 1.12rem; max-width: 46ch; }
+.hero-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+
 .compare { display: grid; gap: 14px; align-items: stretch; }
 @media (min-width: 720px) { .compare { grid-template-columns: minmax(0, 4fr) auto minmax(0, 7fr); } }
-.card { padding: 18px; position: relative; }
+.card { padding: 18px; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 .card-head h3 { margin: 0; font-family: var(--display); font-size: 1.05rem; }
-.score-chip { font-family: var(--display); font-weight: 800; font-size: 1.05rem; padding: 2px 10px; border-radius: 8px; }
+.score-chip { font-family: var(--display); font-weight: 800; font-size: 1.05rem; padding: 2px 10px; border-radius: 8px; white-space: nowrap; }
 .score-chip.low { background: var(--missing-bg); color: var(--missing); }
+.score-chip.mid { background: var(--weak-bg); color: var(--weak); }
 .score-chip.high { background: var(--good-bg); color: var(--good); }
+.score-chip.pending { background: var(--accent-soft); color: var(--accent); font: 700 .85rem var(--body); }
 .score-chip small { font-weight: 700; font-size: .7em; opacity: .8; }
 .before-text { font-size: 1.15rem; margin: 0 0 14px; }
 .misses { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
@@ -105,83 +99,103 @@ section.block { padding: 56px 0 0; }
 .misses li::before { content: "✕"; color: var(--missing); font-weight: 700; font-size: .8rem; }
 .arrow { display: grid; place-items: center; color: var(--accent); }
 .arrow svg { width: 40px; height: 40px; }
-@media (max-width: 719px) { .arrow svg { transform: rotate(90deg); } }
-.after-text { margin: 0; line-height: 2.05; font-size: 1rem; }
-.seg-hl {
-  background: var(--mark-soft); border-bottom: 2px solid var(--mark); padding: 2px 3px; border-radius: 3px;
-  box-decoration-break: clone; -webkit-box-decoration-break: clone;
-}
-.tag {
-  display: inline-block; font-size: .68rem; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 5px;
-  background: var(--accent); color: var(--accent-ink); vertical-align: 2px; margin-left: 3px; white-space: nowrap;
-}
+@media (max-width: 719px) { .compare .arrow svg { transform: rotate(90deg); } }
+.after-text { margin: 0; line-height: 2.05; }
+.seg-hl { background: var(--mark-soft); border-bottom: 2px solid var(--mark); padding: 2px 3px; border-radius: 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.tag { display: inline-block; font-size: .68rem; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 5px; background: var(--accent); color: var(--accent-ink); vertical-align: 2px; margin-left: 3px; white-space: nowrap; }
 .card.after { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 
-.notice {
-  margin: 28px 0 0; padding: 10px 14px; border-radius: 10px;
-  background: var(--weak-bg); border-left: 4px solid var(--weak); font-size: .95rem;
-}
+/* How it works */
+.how { display: grid; gap: 14px; margin-top: 24px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .how { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .how { grid-template-columns: repeat(4, 1fr); } }
+.how .panel { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.how h3 { margin: 0; font-family: var(--display); font-size: 1.15rem; display: flex; align-items: center; gap: 10px; }
+.num { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 800 1rem var(--display); flex: none; }
+.how p { margin: 0; color: var(--muted); font-size: .95rem; }
+.mini { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-height: 104px; display: grid; align-content: center; gap: 8px; }
+.mini-type { font-size: .9rem; padding: 8px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+.mini-type::after { content: "|"; margin-left: 1px; color: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.mini-score { display: flex; align-items: baseline; gap: 6px; font: 800 2rem/1 var(--display); }
+.mini-score small { font-size: .85rem; color: var(--muted); }
+.mini-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.mini-strip i { height: 8px; border-radius: 2px; background: var(--missing); opacity: .85; }
+.mini-strip i.g { background: var(--good); opacity: 1; }
+.mini-strip i.w { background: var(--weak); opacity: 1; }
+.mini-q { font-weight: 700; font-size: .9rem; }
+.mini-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mini-chips span { font-size: .8rem; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); }
+.mini-chips span.sel { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mini-line { font-size: .85rem; padding: 5px 9px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); }
+.mini-line.old { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--missing); }
+.mini-line.new { border-color: var(--accent); }
 
-/* Tool */
-.tool-head { margin-bottom: 20px; }
-.grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
-@media (min-width: 920px) {
-  .grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
-  .editor { position: sticky; top: 20px; }
-}
-.editor { padding: 20px; }
-.editor label { display: block; font-family: var(--display); font-weight: 700; font-size: 1.15rem; margin-bottom: 8px; }
-textarea {
-  width: 100%; min-height: 200px; resize: vertical; padding: 14px 16px;
-  background: var(--paper); border: 1px solid var(--line); border-radius: 10px; line-height: 1.5;
-}
+/* Workspace: the four steps */
+.notice { margin: 18px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--weak-bg); border-left: 4px solid var(--weak); font-size: .95rem; }
+.steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 0; }
+.step { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 0 16px; }
+.rail { display: flex; flex-direction: column; align-items: center; }
+.rail .num { width: 40px; height: 40px; border-radius: 12px; font-size: 1.15rem; background: var(--surface); color: var(--muted); border: 2px solid var(--line); }
+.rail .line { flex: 1; width: 2px; background: var(--line); margin: 6px 0; min-height: 20px; }
+.step:last-child .rail .line { display: none; }
+.step[data-state="active"] .rail .num { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.step[data-state="done"] .rail .num { background: var(--good); border-color: var(--good); color: #fff; }
+.step[data-state="done"] .rail .line { background: var(--good); }
+.step-body { padding-bottom: 28px; min-width: 0; }
+.step-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; margin-bottom: 12px; flex-wrap: wrap; }
+.step-head h3 { margin: 0; font-family: var(--display); font-size: 1.35rem; }
+.badge { font-size: .8rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--paper); border: 1px solid var(--line); color: var(--muted); }
+.step[data-state="active"] .badge { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+.step[data-state="done"] .badge { background: var(--good-bg); border-color: transparent; color: var(--good); }
+.step-panel { padding: 20px; }
+.step[data-state="waiting"] .step-panel { background: transparent; border-style: dashed; }
+.waiting-text { margin: 0; color: var(--muted); }
+
+/* Step 1 */
+.write { display: grid; gap: 20px; }
+@media (min-width: 860px) { .write { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+textarea { width: 100%; min-height: 180px; resize: vertical; padding: 14px 16px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; line-height: 1.5; }
 textarea::placeholder { color: var(--muted); }
-.editor-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.write-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
 .count { color: var(--muted); font-size: .9rem; }
 .count.over { color: var(--missing); font-weight: 700; }
-
-/* Live checklist (replaces sample prompts) */
-.live { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.write-help { margin: 10px 0 0; color: var(--muted); font-size: .92rem; }
+.live { border-left: 1px solid var(--line); padding-left: 20px; }
+@media (max-width: 859px) { .live { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 16px; } }
 .live-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; }
-.live-head strong { font-family: var(--display); font-size: 1rem; }
+.live-head strong { font-family: var(--display); }
 .live-head span { color: var(--muted); font-size: .85rem; }
 .live-meter { height: 6px; background: var(--paper); border-radius: 99px; overflow: hidden; margin-bottom: 12px; border: 1px solid var(--line); }
 .live-meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
-.checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 7px 14px; }
 .checks li { display: flex; align-items: center; gap: 8px; font-size: .92rem; color: var(--muted); }
 .checks .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); flex: none; display: grid; place-items: center; font-size: .7rem; font-weight: 700; transition: background .2s, border-color .2s; }
 .checks li.on { color: var(--ink); }
 .checks li.on .dot { background: var(--good); border-color: var(--good); color: #fff; }
-.live-tip { margin: 12px 0 0; font-size: .92rem; color: var(--muted); min-height: 1.5em; }
+.live-tip { margin: 12px 0 0; font-size: .92rem; color: var(--muted); }
 .live-tip b { color: var(--ink); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.coach { padding: 22px; min-height: 320px; }
-.empty { color: var(--muted); }
-.empty h3 { font-family: var(--display); color: var(--ink); font-size: 1.35rem; margin: 0 0 6px; }
-.empty-steps { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 12px; }
-.empty-steps li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; }
-.empty-steps .n { width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 800; display: grid; place-items: center; }
-.empty-steps b { color: var(--ink); display: block; }
-
-.error { background: var(--missing-bg); color: var(--ink); border-left: 4px solid var(--missing); padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; }
-
-/* Score block */
-.score { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; align-items: center; }
-.score-num { font-family: var(--display); font-weight: 800; font-size: clamp(4rem, 9vw, 5.6rem); line-height: .9; letter-spacing: -0.04em; }
+/* Step 2 */
+.report { display: grid; gap: 24px; }
+@media (min-width: 860px) { .report { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); } }
+.score-num { font: 800 clamp(4rem, 9vw, 5.4rem)/.9 var(--display); letter-spacing: -0.04em; }
 .score-num small { font-size: .32em; color: var(--muted); font-weight: 700; letter-spacing: 0; }
-.score-side { min-width: 0; }
-.ptype { display: inline-block; font-size: .85rem; padding: 2px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--ink); }
-.verdict { margin: 8px 0 0; font-size: 1.05rem; }
-.delta { font-size: .95rem; color: var(--good); font-weight: 700; margin-top: 6px; }
-.delta.down { color: var(--missing); }
-.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 20px 0 6px; }
+.ptype { display: inline-block; font-size: .85rem; padding: 2px 10px; border-radius: 99px; background: var(--accent-soft); margin-top: 12px; }
+.verdict { margin: 10px 0 0; }
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 16px 0 0; }
 .seg { height: 10px; border-radius: 3px; }
 .seg.good { background: var(--good); }
 .seg.weak { background: var(--weak); }
 .seg.missing { background: var(--missing); opacity: .85; }
-h3.section { font-family: var(--display); font-size: 1.2rem; margin: 28px 0 10px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: .85rem; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend .lg::before { background: var(--good); }
+.legend .lw::before { background: var(--weak); }
+.legend .lm::before { background: var(--missing); }
 .rubric { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.rubric li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.rubric li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .mark { width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center; font-weight: 700; font-size: .85rem; margin-top: 1px; }
 .mark.good { background: var(--good-bg); color: var(--good); }
 .mark.weak { background: var(--weak-bg); color: var(--weak); }
@@ -189,76 +203,61 @@ h3.section { font-family: var(--display); font-size: 1.2rem; margin: 28px 0 10px
 .dim-name { font-weight: 700; }
 .dim-status { color: var(--muted); font-size: .88rem; margin-left: 6px; }
 .dim-note { margin: 2px 0 0; color: var(--muted); font-size: .95rem; }
-.q { padding: 14px 0; border-bottom: 1px solid var(--line); }
-.q:first-of-type { border-top: 1px solid var(--line); }
+
+/* Step 3 */
+.qs { display: grid; gap: 14px; }
+@media (min-width: 860px) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.q { padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
 .q-text { font-weight: 700; margin: 0 0 10px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { border: 1px solid var(--line); background: var(--paper); border-radius: 99px; padding: 7px 14px; cursor: pointer; font-size: .95rem; text-align: left; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 7px 14px; cursor: pointer; font-size: .95rem; text-align: left; }
 .chip:hover { border-color: var(--accent); }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.other { margin-top: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); }
-.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
-.hint { color: var(--muted); font-size: .9rem; margin: 10px 0 0; }
+.other { margin-top: 10px; width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 18px; }
+.hint { color: var(--muted); font-size: .92rem; margin: 0; }
 
-/* Result: your prompt vs improved, full width */
-.result-wrap { margin-top: 24px; padding: 24px; scroll-margin-top: 16px; }
-.result-wrap[hidden] { display: none; }
-.vs { display: grid; gap: 14px; margin-top: 18px; align-items: stretch; }
+/* Step 4: the new prompt */
+.vs { display: grid; gap: 14px; align-items: stretch; }
 @media (min-width: 760px) { .vs { grid-template-columns: minmax(0, 4fr) auto minmax(0, 6fr); } }
-.vs .arrow svg { width: 36px; height: 36px; }
 @media (max-width: 759px) { .vs .arrow svg { transform: rotate(90deg); } }
+.vs .arrow svg { width: 34px; height: 34px; }
 .vs-col { border: 1px solid var(--line); border-radius: 12px; padding: 16px; background: var(--paper); min-width: 0; }
 .vs-col.improved { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 1px var(--accent); }
 .vs-col h4 { margin: 0 0 10px; font-family: var(--display); font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.score-chip.pending { background: var(--accent-soft); color: var(--accent); font-size: .85rem; font-weight: 700; font-family: var(--body); }
-.result-cols { display: grid; gap: 24px; margin-top: 8px; }
-@media (min-width: 900px) { .result-cols { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); } }
 .vs-col pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; font: inherit; line-height: 1.6; }
 .vs-col.original pre { color: var(--muted); }
 mark.ph { background: var(--mark-soft); color: var(--ink); border-bottom: 2px dashed var(--weak); padding: 0 2px; border-radius: 3px; }
-.changes { list-style: none; padding: 0; margin: 14px 0 0; }
-.changes li { padding: 8px 0 8px 14px; border-left: 3px solid var(--mark); margin-bottom: 8px; }
+.skeleton { display: grid; gap: 10px; }
+.skeleton i { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--paper), var(--line), var(--paper)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.writing-note { display: flex; align-items: center; gap: 10px; color: var(--muted); margin: 0 0 14px; }
+.changes-wrap { margin-top: 22px; }
+.changes-wrap h4 { margin: 0 0 8px; font-family: var(--display); font-size: 1.1rem; }
+.changes { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+@media (min-width: 760px) { .changes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.changes li { padding: 8px 12px; border-left: 3px solid var(--mark); background: var(--paper); border-radius: 0 8px 8px 0; }
 .changes strong { display: block; }
 .changes span { color: var(--muted); font-size: .95rem; }
 
-/* How it works */
-.how { display: grid; gap: 16px; margin-top: 24px; }
-@media (min-width: 820px) { .how { grid-template-columns: repeat(3, 1fr); } }
-.how .panel { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.how h3 { margin: 0; font-family: var(--display); font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-.how h3 .n { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 1rem; }
-.how p { margin: 0; color: var(--muted); font-size: .97rem; }
-.mini { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-height: 120px; display: grid; align-content: center; gap: 10px; }
-.mini-score { display: flex; align-items: baseline; gap: 8px; font-family: var(--display); font-weight: 800; font-size: 2.2rem; line-height: 1; }
-.mini-score small { font-size: .9rem; color: var(--muted); }
-.mini-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.mini-strip i { height: 8px; border-radius: 2px; background: var(--missing); opacity: .85; }
-.mini-strip i.g { background: var(--good); opacity: 1; }
-.mini-strip i.w { background: var(--weak); opacity: 1; }
-.mini-q { font-weight: 700; font-size: .92rem; }
-.mini-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.mini-chips span { font-size: .82rem; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--line); background: var(--surface); }
-.mini-chips span.sel { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.mini-line { font-size: .88rem; padding: 6px 10px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); }
-.mini-line.old { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--missing); }
-.mini-line.new { border-color: var(--accent); }
+.error { background: var(--missing-bg); color: var(--ink); border-left: 4px solid var(--missing); padding: 12px 14px; border-radius: 8px; margin: 12px 0 0; }
 
-/* Rubric explainer */
-.rubric-grid { display: grid; gap: 10px; margin-top: 24px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+/* Rubric reference */
+.rubric-grid { display: grid; gap: 10px; margin-top: 24px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .rg { padding: 16px; }
 .rg b { display: block; font-family: var(--display); font-size: 1.05rem; }
 .rg span { color: var(--muted); font-size: .93rem; display: block; margin-top: 2px; }
 .rg em { display: block; margin-top: 10px; font-style: normal; font-size: .88rem; background: var(--mark-soft); border-left: 3px solid var(--mark); padding: 6px 8px; border-radius: 0 6px 6px 0; }
 
-/* Extension roadmap */
+/* Roadmap */
 .next { padding: 28px 24px; display: grid; gap: 28px; }
 @media (min-width: 900px) { .next { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); align-items: center; } }
-.steps { list-style: none; counter-reset: step; padding: 0; margin: 20px 0 0; display: grid; gap: 14px; }
-.steps li { counter-increment: step; display: grid; grid-template-columns: 30px 1fr; gap: 12px; }
-.steps li::before { content: counter(step); width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 800; display: grid; place-items: center; }
-.steps strong { display: block; }
-.steps span { color: var(--muted); font-size: .95rem; }
-.also { margin: 20px 0 0; color: var(--muted); font-size: .95rem; max-width: 68ch; }
+.road { list-style: none; counter-reset: road; padding: 0; margin: 20px 0 0; display: grid; gap: 14px; }
+.road li { counter-increment: road; display: grid; grid-template-columns: 30px 1fr; gap: 12px; }
+.road li::before { content: counter(road); width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font: 800 1rem var(--display); display: grid; place-items: center; }
+.road strong { display: block; }
+.road span { color: var(--muted); font-size: .95rem; }
+.also { margin: 20px 0 0; color: var(--muted); font-size: .95rem; }
 .browser { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
 .browser-bar { display: flex; gap: 6px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
 .browser-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
@@ -270,142 +269,169 @@ mark.ph { background: var(--mark-soft); color: var(--ink); border-bottom: 2px da
 .chat-input span { flex: 1; }
 .coach-btn { font-size: .78rem; font-weight: 700; padding: 4px 8px; border-radius: 7px; background: var(--mark); color: #17202B; white-space: nowrap; }
 .side { border-left: 1px solid var(--line); background: var(--surface); padding: 14px 12px; display: grid; align-content: start; gap: 8px; }
-.side b { font-family: var(--display); font-size: 1.6rem; line-height: 1; }
+.side b { font: 800 1.6rem/1 var(--display); }
 .side small { color: var(--muted); font-size: .75rem; }
 .side .row { height: 8px; border-radius: 4px; background: var(--paper); }
 .side .use { margin-top: 6px; font-size: .75rem; font-weight: 700; text-align: center; padding: 6px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); }
 
-footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
+footer { color: var(--muted); font-size: .9rem; padding: 48px 0; }
 
 .reveal { animation: reveal .35s ease-out both; }
 @keyframes reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .reveal, .spinner { animation: none; } .live-meter i, .checks .dot { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .spinner, .skeleton i, .mini-type::after { animation: none; }
+  .live-meter i, .checks .dot { transition: none; }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="topbar">
-    <a class="logo" href="#top" aria-label="Prompt Coach home">
+<nav class="nav" aria-label="Main">
+  <div class="wrap">
+    <a class="logo" href="#top">
       <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#2E54E8"/><path d="M9 22l9-12 2 6 3-2-9 12-2-6z" fill="#FFE066"/></svg>
       Prompt Coach
     </a>
-    <span class="pill">Runs on <b>Gemma 4</b>, open-weight</span>
-  </header>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#good">Good prompts</a>
+      <a href="#next">What's next</a>
+      <a class="cta" href="#coach">Try it</a>
+    </div>
+  </div>
+</nav>
 
+<main class="wrap">
+  <!-- 1. The idea -->
   <section class="hero" id="top">
     <div class="hero-text">
       <h1>Better prompts, <span class="hl">before</span> you hit send.</h1>
       <div>
-      <p class="lede">Most prompts leave out who it's for, how long it should be, and what good looks like. Prompt Coach spots what's missing, asks you a few quick questions, and rewrites your prompt so the AI gets it right the first time.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="#tool">Check my prompt</a>
-        <button class="btn btn-ghost" type="button" id="try-example">Try the example</button>
-      </div>
+        <p class="lede">Most prompts leave out who it's for, how long it should be, and what good looks like. Prompt Coach spots what's missing, asks you a few quick questions, and writes you a better prompt. Powered by Gemma 4, Google's open-weight model.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#coach">Improve my prompt</a>
+          <button class="btn btn-ghost" type="button" data-example>Try it with this example</button>
+        </div>
       </div>
     </div>
 
     <div class="compare" aria-label="Example: a vague prompt and the improved version">
       <div class="panel card">
-        <div class="card-head">
-          <h3>Your prompt</h3>
-          <span class="score-chip low">2<small>/10</small></span>
-        </div>
+        <div class="card-head"><h3>Your prompt</h3><span class="score-chip low">2<small>/10</small></span></div>
         <p class="before-text" id="example-prompt">write a blog post about kinnow oranges</p>
-        <ul class="misses">
-          <li>Who is it for?</li>
-          <li>How long?</li>
-          <li>What tone?</li>
-          <li>What's the point of it?</li>
-        </ul>
+        <ul class="misses"><li>Who is it for?</li><li>How long?</li><li>What tone?</li><li>What's the point of it?</li></ul>
       </div>
-      <div class="arrow" aria-hidden="true">
-        <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h24M22 10l10 10-10 10"/></svg>
-      </div>
+      <div class="arrow" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h24M22 10l10 10-10 10"/></svg></div>
       <div class="panel card after">
-        <div class="card-head">
-          <h3>Improved with Prompt Coach</h3>
-          <span class="score-chip high">9<small>/10</small></span>
-        </div>
+        <div class="card-head"><h3>Improved with Prompt Coach</h3><span class="score-chip high">9<small>/10</small></span></div>
         <p class="after-text">Write a <span class="seg-hl">700-word blog post</span><span class="tag">Format</span> about Kinnow oranges <span class="seg-hl">grown on our family farm in Sargodha</span><span class="tag">Context</span> for <span class="seg-hl">health-conscious families in Pakistan</span><span class="tag">Audience</span>. Use a <span class="seg-hl">warm, friendly tone and avoid medical claims</span><span class="tag">Constraints</span>. Write it <span class="seg-hl">in the style of a food-magazine feature</span><span class="tag">Example</span>. It should <span class="seg-hl">make readers want to order a box this season</span><span class="tag">Success</span>.</p>
       </div>
     </div>
   </section>
 
-  <p class="notice" role="note"><strong>Heads up:</strong> this demo runs on Gemma's free tier. If many people use it at the same time, the free quota can run out. If you see a "quota" message, please try again after 15 minutes.</p>
-
-  <section class="block" id="tool" aria-labelledby="tool-title">
-    <div class="tool-head">
-      <h2 class="title" id="tool-title">Try it on your own prompt</h2>
-      <p class="sub">Paste something you were about to send to ChatGPT, Gemini or Claude.</p>
-    </div>
-    <div class="grid">
-      <section class="panel editor" aria-labelledby="prompt-label">
-        <label id="prompt-label" for="prompt">Your prompt</label>
-        <textarea id="prompt" placeholder="e.g. write an email to my landlord about the broken heater" maxlength="4000"></textarea>
-        <div class="editor-foot">
-          <span class="count" id="count">0 / 4000</span>
-          <button class="btn btn-primary" id="analyze-btn" type="button">Check my prompt</button>
-        </div>
-
-        <div class="live" aria-live="polite">
-          <div class="live-head">
-            <strong>Quick check as you type</strong>
-            <span id="live-count">0 of 7</span>
-          </div>
-          <div class="live-meter" aria-hidden="true"><i id="live-bar"></i></div>
-          <ul class="checks" id="checks"></ul>
-          <p class="live-tip" id="live-tip">Start typing to see which parts of a good prompt you've covered.</p>
-        </div>
-      </section>
-
-      <section class="panel coach" id="coach" aria-live="polite" aria-busy="false">
-        <div class="empty">
-          <h3>Your coach's notes appear here</h3>
-          <p>When you press <b>Check my prompt</b>, Gemma reads it like an expert would.</p>
-          <ol class="empty-steps">
-            <li><span class="n">1</span><div><b>A score and a checklist</b>What your prompt covers and what it leaves the AI to guess.</div></li>
-            <li><span class="n">2</span><div><b>A few quick questions</b>Tap an answer or type your own. Skip any you like.</div></li>
-            <li><span class="n">3</span><div><b>Your prompt, improved</b>Shown next to your original, with notes on what changed.</div></li>
-          </ol>
-        </div>
-      </section>
-    </div>
-    <section class="panel result-wrap" id="result-wrap" aria-labelledby="result-title" hidden></section>
-  </section>
-
-  <section class="block" aria-labelledby="how-title">
-    <h2 class="title" id="how-title">How it works</h2>
-    <p class="sub">Three steps, and you stay in control. Nothing is rewritten until you ask.</p>
+  <!-- 2. How it works -->
+  <section class="block" id="how" aria-labelledby="how-title">
+    <span class="kicker">How it works</span>
+    <h2 class="title" id="how-title">Four steps from a rough idea to a prompt that works</h2>
+    <p class="sub">You stay in control the whole time. Nothing is rewritten until you ask.</p>
     <div class="how">
       <div class="panel">
-        <h3><span class="n">1</span>Check</h3>
-        <div class="mini" aria-hidden="true">
-          <div class="mini-score">3<small>/ 10</small></div>
-          <div class="mini-strip"><i class="g"></i><i class="w"></i><i></i><i></i><i class="w"></i><i></i><i></i></div>
-        </div>
-        <p>Your prompt is scored against seven things a good prompt has, with a note on each that's specific to what you wrote.</p>
+        <h3><span class="num">1</span>Write</h3>
+        <div class="mini" aria-hidden="true"><div class="mini-type">write a blog post about kinnow</div></div>
+        <p>Paste the prompt you were about to send. A live checklist shows what you've covered as you type.</p>
       </div>
       <div class="panel">
-        <h3><span class="n">2</span>Answer</h3>
-        <div class="mini" aria-hidden="true">
-          <div class="mini-q">Who will read this?</div>
-          <div class="mini-chips"><span>Customers</span><span class="sel">Families</span><span>Chefs</span></div>
-        </div>
-        <p>The coach asks two to four questions about the gaps that matter most. One tap each, or type your own answer.</p>
+        <h3><span class="num">2</span>Check</h3>
+        <div class="mini" aria-hidden="true"><div class="mini-score">3<small>/ 10</small></div><div class="mini-strip"><i class="g"></i><i class="w"></i><i></i><i></i><i class="w"></i><i></i><i></i></div></div>
+        <p>Gemma scores it against seven things a good prompt has, with notes specific to what you wrote.</p>
       </div>
       <div class="panel">
-        <h3><span class="n">3</span>Rewrite</h3>
-        <div class="mini" aria-hidden="true">
-          <div class="mini-line old">write a blog post about kinnow</div>
-          <div class="mini-line new">Write a 700-word post for families…</div>
-        </div>
-        <p>You get a stronger prompt next to your original, with a short note on why each change helps, so you learn as you go.</p>
+        <h3><span class="num">3</span>Answer</h3>
+        <div class="mini" aria-hidden="true"><div class="mini-q">Who will read this?</div><div class="mini-chips"><span>Customers</span><span class="sel">Families</span><span>Chefs</span></div></div>
+        <p>Answer two to four quick questions about the gaps. One tap each, or type your own.</p>
+      </div>
+      <div class="panel">
+        <h3><span class="num">4</span>Get your prompt</h3>
+        <div class="mini" aria-hidden="true"><div class="mini-line old">write a blog post about kinnow</div><div class="mini-line new">Write a 700-word post for families…</div></div>
+        <p>Your new prompt is written next to the original, with a note on why each change helps.</p>
       </div>
     </div>
   </section>
 
-  <section class="block" aria-labelledby="rubric-title">
-    <h2 class="title" id="rubric-title">What makes a good prompt</h2>
+  <!-- 3. The coach: the four steps, in order -->
+  <section class="block" id="coach" aria-labelledby="coach-title">
+    <span class="kicker">Try it</span>
+    <h2 class="title" id="coach-title">Improve your prompt</h2>
+    <p class="sub">Work down the steps. Each one unlocks when the one before is done.</p>
+    <p class="notice" role="note"><strong>Heads up:</strong> this demo runs on Gemma's free tier. If many people use it at the same time, the free quota can run out. If you see a "quota" message, please try again after 15 minutes.</p>
+
+    <ol class="steps">
+      <!-- Step 1 -->
+      <li class="step" id="step-1" data-state="active">
+        <div class="rail" aria-hidden="true"><span class="num">1</span><span class="line"></span></div>
+        <div class="step-body">
+          <div class="step-head"><h3>Write your prompt</h3><span class="badge" data-badge>Start here</span></div>
+          <div class="panel step-panel">
+            <div class="write">
+              <div>
+                <label class="sr" for="prompt">Your prompt</label>
+                <textarea id="prompt" placeholder="Paste or type the prompt you were about to send to ChatGPT, Gemini or Claude…" maxlength="4000"></textarea>
+                <div class="write-foot">
+                  <span class="count" id="count">0 / 4000</span>
+                  <button class="btn btn-primary" id="analyze-btn" type="button">Check my prompt</button>
+                </div>
+                <p class="write-help">No prompt handy? <button class="btn-link" type="button" data-example>Use the example from the top</button></p>
+              </div>
+              <div class="live" aria-live="polite">
+                <div class="live-head"><strong>Quick check as you type</strong><span id="live-count">0 of 7</span></div>
+                <div class="live-meter" aria-hidden="true"><i id="live-bar"></i></div>
+                <ul class="checks" id="checks"></ul>
+                <p class="live-tip" id="live-tip">Start typing to see which parts of a good prompt you've covered.</p>
+              </div>
+            </div>
+            <div id="error-1"></div>
+          </div>
+        </div>
+      </li>
+
+      <!-- Step 2 -->
+      <li class="step" id="step-2" data-state="waiting">
+        <div class="rail" aria-hidden="true"><span class="num">2</span><span class="line"></span></div>
+        <div class="step-body">
+          <div class="step-head"><h3>See what's missing</h3><span class="badge" data-badge>Waiting for step 1</span></div>
+          <div class="panel step-panel" id="report" aria-live="polite">
+            <p class="waiting-text">Your score and a checklist of what your prompt covers will appear here.</p>
+          </div>
+        </div>
+      </li>
+
+      <!-- Step 3 -->
+      <li class="step" id="step-3" data-state="waiting">
+        <div class="rail" aria-hidden="true"><span class="num">3</span><span class="line"></span></div>
+        <div class="step-body">
+          <div class="step-head"><h3>Answer a few questions</h3><span class="badge" data-badge>Waiting for step 2</span></div>
+          <div class="panel step-panel" id="questions">
+            <p class="waiting-text">A few quick questions about the gaps will appear here. Answer what you can and skip the rest.</p>
+          </div>
+        </div>
+      </li>
+
+      <!-- Step 4 -->
+      <li class="step" id="step-4" data-state="waiting">
+        <div class="rail" aria-hidden="true"><span class="num">4</span><span class="line"></span></div>
+        <div class="step-body">
+          <div class="step-head"><h3>Your improved prompt</h3><span class="badge" data-badge>Waiting for step 3</span></div>
+          <div class="panel step-panel" id="result" aria-live="polite">
+            <p class="waiting-text">Your new prompt will be written here, side by side with your original.</p>
+          </div>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 4. Reference -->
+  <section class="block" id="good" aria-labelledby="good-title">
+    <span class="kicker">Good prompts</span>
+    <h2 class="title" id="good-title">The seven things the coach checks</h2>
     <p class="sub">Not every prompt needs all seven. A quick question doesn't need an audience. The coach judges what yours needs.</p>
     <div class="rubric-grid">
       <div class="panel rg"><b>Goal</b><span>What exactly should the AI do?</span><em>Write a blog post</em></div>
@@ -418,12 +444,14 @@ footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
     </div>
   </section>
 
-  <section class="block" aria-labelledby="next-title">
+  <!-- 5. Roadmap -->
+  <section class="block" id="next" aria-labelledby="next-title">
     <div class="panel next">
       <div>
-        <h2 class="title" id="next-title">Coming next: a Chrome extension</h2>
+        <span class="kicker">What's next</span>
+        <h2 class="title" id="next-title">Prompt Coach as a Chrome extension</h2>
         <p class="sub">Copying prompts back and forth is a step too many. The extension brings the coach to the box where you already type.</p>
-        <ol class="steps">
+        <ol class="road">
           <li><div><strong>A button beside your prompt box</strong><span>On ChatGPT, Gemini and Claude, a small Coach button appears next to the text box.</span></div></li>
           <li><div><strong>The coach opens in a side panel</strong><span>The same score, checklist and quick questions, without leaving the page.</span></div></li>
           <li><div><strong>One click to use the better prompt</strong><span>Accept the rewrite and it replaces your draft, ready to send.</span></div></li>
@@ -440,11 +468,8 @@ footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
             <div class="chat-input"><span>write a blog post about…</span><b class="coach-btn">Coach</b></div>
           </div>
           <div class="side">
-            <small>Prompt Coach</small>
-            <b>3/10</b>
-            <div class="row" style="width:90%"></div>
-            <div class="row" style="width:70%"></div>
-            <div class="row" style="width:80%"></div>
+            <small>Prompt Coach</small><b>3/10</b>
+            <div class="row" style="width:90%"></div><div class="row" style="width:70%"></div><div class="row" style="width:80%"></div>
             <div class="use">Use better prompt</div>
           </div>
         </div>
@@ -452,27 +477,42 @@ footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
     </div>
   </section>
 
-  <footer>Runs on Gemma 4, Google's open-weight model. Prompts are sent to the model only to check and rewrite them, and nothing is stored.</footer>
-</div>
+  <footer>Prompt Coach runs on Gemma 4, Google's open-weight model. Prompts are sent to the model only to check and rewrite them, and nothing is stored.</footer>
+</main>
 
 <script>
 (() => {
   const MAX = 4000;
   const $ = (s, el = document) => el.querySelector(s);
   const promptEl = $("#prompt");
-  const countEl = $("#count");
   const analyzeBtn = $("#analyze-btn");
-  const coach = $("#coach");
   const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const scrollTo = (el) => el.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
 
   const STATUS_TEXT = { good: "Covered", weak: "Vague", missing: "Missing" };
   const STATUS_MARK = { good: "✓", weak: "~", missing: "✕" };
-  const TYPE_TEXT = {
-    writing: "Writing prompt", coding: "Coding prompt", image: "Image prompt", research: "Research prompt",
-    data: "Data prompt", business: "Business prompt", learning: "Learning prompt", other: "General prompt",
-  };
+  const TYPE_TEXT = { writing: "Writing prompt", coding: "Coding prompt", image: "Image prompt", research: "Research prompt", data: "Data prompt", business: "Business prompt", learning: "Learning prompt", other: "General prompt" };
+  const scoreClass = (n) => (n >= 7 ? "high" : n >= 4 ? "mid" : "low");
 
-  // Quick, local hints while typing. Gemma does the real check.
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const withPlaceholders = (s) => esc(s).replace(/\[[^\]\n]{1,60}\]/g, (m) => `<mark class="ph">${m}</mark>`);
+
+  const state = { prompt: "", analysis: null, answers: {}, rewrite: null, busy: false };
+
+  // ---- Step status (rail + badge) ----
+  const BADGES = {
+    1: { active: "Start here", done: "Done" },
+    2: { waiting: "Waiting for step 1", active: "Checking…", done: "Done" },
+    3: { waiting: "Waiting for step 2", active: "Your turn", done: "Done" },
+    4: { waiting: "Waiting for step 3", active: "Writing…", done: "Ready" },
+  };
+  function setStep(n, s) {
+    const el = $(`#step-${n}`);
+    el.dataset.state = s;
+    $("[data-badge]", el).textContent = BADGES[n][s] || "";
+  }
+
+  // ---- Live checklist (local hints; Gemma does the real check) ----
   const LIVE = [
     { key: "goal", label: "Goal", tip: "Start with what you want done, e.g. <b>Write</b>, <b>Explain</b>, <b>Fix</b>.",
       test: (t) => /\b(write|create|make|explain|fix|summari[sz]e|draft|generate|design|analy[sz]e|translate|list|compare|plan|help|review|rewrite|build|suggest|find|teach|describe)\b/i.test(t) },
@@ -490,7 +530,7 @@ footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
       test: (t) => /\b(so that|in order to|the goal is|goal|aim|purpose|should (help|make|get|convince)|to (get|increase|convince|persuade|attract|help|win))\b/i.test(t) },
   ];
   const checksEl = $("#checks");
-  checksEl.innerHTML = LIVE.map((c) => `<li data-k="${c.key}"><span class="dot" aria-hidden="true"></span><span>${c.label}</span><span class="sr-status" style="position:absolute;left:-9999px"> not yet</span></li>`).join("");
+  checksEl.innerHTML = LIVE.map((c) => `<li data-k="${c.key}"><span class="dot" aria-hidden="true"></span><span>${c.label}</span><span class="sr" data-sr> not yet</span></li>`).join("");
   function updateLive() {
     const t = promptEl.value;
     let hits = 0, firstMiss = null;
@@ -498,36 +538,31 @@ footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
       const on = t.trim().length > 0 && c.test(t);
       const li = checksEl.querySelector(`[data-k="${c.key}"]`);
       li.classList.toggle("on", on);
-      li.querySelector(".dot").textContent = on ? "✓" : "";
-      li.querySelector(".sr-status").textContent = on ? " covered" : " not yet";
+      $(".dot", li).textContent = on ? "✓" : "";
+      $("[data-sr]", li).textContent = on ? " covered" : " not yet";
       if (on) hits++; else if (!firstMiss) firstMiss = c;
     });
     $("#live-count").textContent = `${hits} of 7`;
     $("#live-bar").style.width = `${(hits / 7) * 100}%`;
-    $("#live-tip").innerHTML = !t.trim()
-      ? "Start typing to see which parts of a good prompt you've covered."
+    $("#live-tip").innerHTML = !t.trim() ? "Start typing to see which parts of a good prompt you've covered."
       : firstMiss ? `Next: ${firstMiss.tip}` : "Looks thorough. Press <b>Check my prompt</b> for the full review.";
   }
-
-  const state = { prompt: "", analysis: null, answers: {}, rewrite: null, previousScore: null, busy: false };
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const withPlaceholders = (s) => esc(s).replace(/\[[^\]\n]{1,60}\]/g, (m) => `<mark class="ph">${m}</mark>`);
-
   function updateCount() {
     const n = promptEl.value.length;
-    countEl.textContent = `${n} / ${MAX}`;
-    countEl.classList.toggle("over", n >= MAX);
+    $("#count").textContent = `${n} / ${MAX}`;
+    $("#count").classList.toggle("over", n >= MAX);
     updateLive();
   }
   promptEl.addEventListener("input", updateCount);
   promptEl.addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") analyze(); });
   analyzeBtn.addEventListener("click", () => analyze());
-  $("#try-example").addEventListener("click", () => {
+  document.querySelectorAll("[data-example]").forEach((b) => b.addEventListener("click", () => {
     promptEl.value = $("#example-prompt").textContent; updateCount();
-    $("#tool").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
+    scrollTo($("#step-1"));
     analyze();
-  });
+  }));
 
+  // ---- API ----
   async function post(path, payload) {
     let res;
     try {
@@ -535,109 +570,88 @@ footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
     } catch {
       throw new Error("Couldn't reach the server. Check your connection and try again.");
     }
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Something went wrong. Try again.");
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) {
+      if (data && data.error) throw new Error(data.error);
+      if (res.status === 504) throw new Error("Gemma took too long to answer. Please try again.");
+      throw new Error("Something went wrong on the server. Please try again.");
+    }
     return data;
   }
-
-  function setBusy(btn, busy, label) {
+  function busyBtn(btn, busy, label) {
     state.busy = busy;
-    coach.setAttribute("aria-busy", String(busy));
-    if (!btn) return;
     btn.disabled = busy;
-    btn.innerHTML = busy ? `<span class="spinner" aria-hidden="true"></span>${esc(label)}` : esc(btn.dataset.label || btn.textContent);
+    if (busy) { btn.dataset.label = btn.textContent; btn.innerHTML = `<span class="spinner" aria-hidden="true"></span>${esc(label)}`; }
+    else btn.textContent = btn.dataset.label;
   }
+  const errorBox = (msg) => `<div class="error" role="alert">${esc(msg)}</div>`;
 
-  async function analyze(fromRewrite = false) {
+  // ---- Step 1 → 2 ----
+  async function analyze() {
     const text = promptEl.value.trim();
     if (state.busy) return;
-    if (!text) { promptEl.focus(); showError("Write a prompt first, or press Try the example at the top."); return; }
-    state.previousScore = fromRewrite && state.analysis ? state.analysis.score : null;
-    analyzeBtn.dataset.label = "Check my prompt";
-    setBusy(analyzeBtn, true, "Checking…");
+    if (!text) { promptEl.focus(); $("#error-1").innerHTML = errorBox("Write a prompt first, or use the example."); return; }
+    $("#error-1").innerHTML = "";
+    busyBtn(analyzeBtn, true, "Checking… about 15 seconds");
+    setStep(2, "active"); setStep(3, "waiting"); setStep(4, "waiting");
+    $("#report").innerHTML = `<p class="writing-note"><span class="spinner" aria-hidden="true"></span>Gemma is reading your prompt…</p><div class="skeleton" aria-hidden="true"><i style="width:40%"></i><i></i><i style="width:85%"></i><i style="width:70%"></i></div>`;
+    $("#questions").innerHTML = `<p class="waiting-text">A few quick questions about the gaps will appear here. Answer what you can and skip the rest.</p>`;
+    $("#result").innerHTML = `<p class="waiting-text">Your new prompt will be written here, side by side with your original.</p>`;
     try {
-      const analysis = await post("/api/analyze", { prompt: text });
-      state.prompt = text; state.analysis = analysis; state.answers = {}; state.rewrite = null;
-      render(); renderResult(false);
+      const a = await post("/api/analyze", { prompt: text });
+      Object.assign(state, { prompt: text, analysis: a, answers: {}, rewrite: null });
+      setStep(1, "done"); setStep(2, "done"); setStep(3, "active");
+      renderReport(); renderQuestions();
+      scrollTo($("#step-2"));
     } catch (err) {
-      showError(err.message);
+      setStep(2, "waiting");
+      $("#report").innerHTML = `<p class="waiting-text">Your score and a checklist of what your prompt covers will appear here.</p>`;
+      $("#error-1").innerHTML = errorBox(err.message);
     } finally {
-      setBusy(analyzeBtn, false);
+      busyBtn(analyzeBtn, false);
     }
   }
 
-  async function rewrite(btn) {
-    if (state.busy || !state.analysis) return;
-    const answers = state.analysis.questions.map((q) => ({ question: q.question, answer: (state.answers[q.id] || "").trim() }));
-    btn.dataset.label = "Rewrite my prompt";
-    setBusy(btn, true, "Rewriting… this takes about 30 seconds");
-    try {
-      state.rewrite = await post("/api/rewrite", { prompt: state.prompt, answers, gaps: state.analysis.top_gaps });
-      renderResult(true);
-    } catch (err) {
-      showError(err.message, true);
-    } finally {
-      setBusy(btn, false);
-    }
-  }
-
-  function showError(msg, keep = false) {
-    const box = `<div class="error" role="alert">${esc(msg)}</div>`;
-    const old = $(".error", coach);
-    if (old) old.remove();
-    if (keep && state.analysis) coach.insertAdjacentHTML("afterbegin", box);
-    else if (state.analysis) { render(); coach.insertAdjacentHTML("afterbegin", box); }
-    else { const empty = $(".empty", coach); coach.innerHTML = box; if (empty) coach.appendChild(empty); }
-  }
-
-  function render() {
+  function renderReport() {
     const a = state.analysis;
-    const delta = state.previousScore != null ? a.score - state.previousScore : null;
-    const deltaHtml = delta == null ? "" :
-      `<div class="delta ${delta < 0 ? "down" : ""}">${delta >= 0 ? "Up" : "Down"} from ${state.previousScore} / 10</div>`;
-    const strip = a.dimensions.map((d) => `<div class="seg ${d.status}" title="${esc(d.label)}: ${STATUS_TEXT[d.status]}"></div>`).join("");
-    const rubric = a.dimensions.map((d) => `
-      <li>
-        <span class="mark ${d.status}" aria-hidden="true">${STATUS_MARK[d.status]}</span>
+    $("#report").innerHTML = `
+      <div class="report reveal">
         <div>
-          <span class="dim-name">${esc(d.label)}</span><span class="dim-status">${STATUS_TEXT[d.status]}</span>
-          ${d.note ? `<p class="dim-note">${esc(d.note)}</p>` : ""}
+          <div class="score-num" aria-label="Score ${a.score} out of 10">${a.score}<small>/10</small></div>
+          <span class="ptype">${esc(TYPE_TEXT[a.prompt_type] || TYPE_TEXT.other)}</span>
+          ${a.verdict ? `<p class="verdict">${esc(a.verdict)}</p>` : ""}
+          <div class="strip" aria-hidden="true">${a.dimensions.map((d) => `<div class="seg ${d.status}" title="${esc(d.label)}: ${STATUS_TEXT[d.status]}"></div>`).join("")}</div>
+          <div class="legend" aria-hidden="true"><span class="lg">Covered</span><span class="lw">Vague</span><span class="lm">Missing</span></div>
         </div>
-      </li>`).join("");
-    const qs = a.questions.map((q) => `
+        <ul class="rubric">${a.dimensions.map((d) => `
+          <li><span class="mark ${d.status}" aria-hidden="true">${STATUS_MARK[d.status]}</span>
+            <div><span class="dim-name">${esc(d.label)}</span><span class="dim-status">${STATUS_TEXT[d.status]}</span>
+            ${d.note ? `<p class="dim-note">${esc(d.note)}</p>` : ""}</div></li>`).join("")}
+        </ul>
+      </div>`;
+  }
+
+  // ---- Step 3 ----
+  function renderQuestions() {
+    const qs = state.analysis.questions;
+    const list = qs.length ? `<div class="qs">${qs.map((q) => `
       <div class="q" data-qid="${q.id}">
         <p class="q-text" id="${q.id}-label">${esc(q.question)}</p>
         <div class="chips" role="group" aria-labelledby="${q.id}-label">
           ${q.options.map((o) => `<button type="button" class="chip" aria-pressed="false">${esc(o)}</button>`).join("")}
         </div>
         <input class="other" type="text" placeholder="Or type your own answer" aria-label="Your own answer to: ${esc(q.question)}">
-      </div>`).join("");
-    const questionsBlock = a.questions.length ? `
-      <h3 class="section">A few questions to fill the gaps</h3>
-      ${qs}
-      <div class="actions"><button class="btn btn-primary" id="rewrite-btn" type="button">Rewrite my prompt</button></div>
-      <p class="hint">Answer what you can. Anything you skip becomes a [placeholder] you can fill in.</p>`
-      : `
-      <h3 class="section">This prompt is in good shape</h3>
-      <div class="actions"><button class="btn btn-ghost" id="rewrite-btn" type="button">Rewrite my prompt</button></div>`;
-
-    coach.innerHTML = `
+      </div>`).join("")}</div>` : `<p class="waiting-text">Your prompt already covers what it needs. You can still ask for a polished version.</p>`;
+    $("#questions").innerHTML = `
       <div class="reveal">
-        <div class="score">
-          <div class="score-num" aria-label="Score ${a.score} out of 10">${a.score}<small>/10</small></div>
-          <div class="score-side">
-            <span class="ptype">${esc(TYPE_TEXT[a.prompt_type] || TYPE_TEXT.other)}</span>
-            ${a.verdict ? `<p class="verdict">${esc(a.verdict)}</p>` : ""}
-            ${deltaHtml}
-          </div>
+        ${list}
+        <div class="actions">
+          <button class="btn btn-primary" id="rewrite-btn" type="button">Write my improved prompt</button>
+          <p class="hint">Skipped questions become [placeholders] you can fill in.</p>
         </div>
-        <div class="strip" aria-hidden="true">${strip}</div>
-        <h3 class="section">What your prompt covers</h3>
-        <ul class="rubric">${rubric}</ul>
-        ${questionsBlock}
+        <div id="error-3"></div>
       </div>`;
-
-    coach.querySelectorAll(".q").forEach((qEl) => {
+    document.querySelectorAll("#questions .q").forEach((qEl) => {
       const id = qEl.dataset.qid;
       const chips = qEl.querySelectorAll(".chip");
       const other = $(".other", qEl);
@@ -647,72 +661,92 @@ footer { color: var(--muted); font-size: .9rem; padding: 40px 0; }
         if (!on) { chip.setAttribute("aria-pressed", "true"); state.answers[id] = chip.textContent; other.value = ""; }
         else state.answers[id] = "";
       }));
-      other.addEventListener("input", () => {
-        chips.forEach((c) => c.setAttribute("aria-pressed", "false"));
-        state.answers[id] = other.value;
-      });
+      other.addEventListener("input", () => { chips.forEach((c) => c.setAttribute("aria-pressed", "false")); state.answers[id] = other.value; });
     });
-    const rb = $("#rewrite-btn", coach);
-    if (rb) rb.addEventListener("click", () => rewrite(rb));
+    $("#rewrite-btn").addEventListener("click", (e) => rewrite(e.currentTarget));
   }
 
-  function renderResult(scroll) {
+  // ---- Step 3 → 4 ----
+  async function rewrite(btn) {
+    if (state.busy || !state.analysis) return;
+    $("#error-3").innerHTML = "";
+    const answers = state.analysis.questions.map((q) => ({ question: q.question, answer: (state.answers[q.id] || "").trim() }));
+    busyBtn(btn, true, "Writing… about 15 seconds");
+    setStep(4, "active");
+    $("#result").innerHTML = `<p class="writing-note"><span class="spinner" aria-hidden="true"></span>Gemma is writing your improved prompt…</p><div class="skeleton" aria-hidden="true"><i style="width:90%"></i><i></i><i style="width:75%"></i><i style="width:95%"></i><i style="width:60%"></i></div>`;
+    scrollTo($("#step-4"));
+    try {
+      state.rewrite = await post("/api/rewrite", { prompt: state.prompt, answers, gaps: state.analysis.top_gaps });
+      setStep(3, "done"); setStep(4, "done");
+      renderResult();
+    } catch (err) {
+      setStep(4, "waiting");
+      $("#result").innerHTML = `<p class="waiting-text">Your new prompt will be written here, side by side with your original.</p>`;
+      $("#error-3").innerHTML = errorBox(err.message);
+      scrollTo($("#step-3"));
+    } finally {
+      busyBtn(btn, false);
+    }
+  }
+
+  function renderResult() {
     const r = state.rewrite;
-    const wrap = $("#result-wrap");
-    if (!r) { wrap.hidden = true; wrap.innerHTML = ""; return; }
-    wrap.hidden = false;
-    wrap.innerHTML = `
+    const s = state.analysis.score;
+    $("#result").innerHTML = `
       <div class="reveal">
-        <h2 class="title" id="result-title">Your prompt vs. the improved prompt</h2>
-        <p class="sub">Highlighted [placeholders] are details only you know. Fill them in before you send.</p>
         <div class="vs">
           <div class="vs-col original">
-            <h4>Your prompt <span class="score-chip low">${state.analysis.score}<small>/10</small></span></h4>
+            <h4>Your prompt <span class="score-chip ${scoreClass(s)}">${s}<small>/10</small></span></h4>
             <pre>${esc(state.prompt)}</pre>
           </div>
           <div class="arrow" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20h24M22 10l10 10-10 10"/></svg></div>
           <div class="vs-col improved">
-            <h4>Improved by Prompt Coach <span class="score-chip pending" id="improved-score">Not scored yet</span></h4>
+            <h4>Improved prompt <span class="score-chip pending" id="improved-score">Not scored yet</span></h4>
             <pre id="rewritten">${withPlaceholders(r.rewritten)}</pre>
           </div>
         </div>
-        <div class="result-cols">
-          <div>
-            <div class="actions">
-              <button class="btn btn-primary" id="copy-btn" type="button">Copy improved prompt</button>
-              <button class="btn btn-ghost" id="recheck-btn" type="button">Score the improved prompt</button>
-            </div>
-          </div>
-          ${r.changes.length ? `<div><h3 class="section" style="margin-top:0">What changed and why</h3>
-          <ul class="changes">${r.changes.map((c) => `<li><strong>${esc(c.what)}</strong><span>${esc(c.why)}</span></li>`).join("")}</ul></div>` : ""}
+        <div class="actions">
+          <button class="btn btn-primary" id="copy-btn" type="button">Copy improved prompt</button>
+          <button class="btn btn-ghost" id="score-btn" type="button">Score the improved prompt</button>
+          <button class="btn btn-ghost" id="again-btn" type="button">Start a new prompt</button>
         </div>
+        <div id="error-4"></div>
+        ${r.changes.length ? `<div class="changes-wrap"><h4>What changed and why</h4>
+          <ul class="changes">${r.changes.map((c) => `<li><strong>${esc(c.what)}</strong><span>${esc(c.why)}</span></li>`).join("")}</ul></div>` : ""}
       </div>`;
-    $("#copy-btn", wrap).addEventListener("click", async (e) => {
+    $("#copy-btn").addEventListener("click", async (e) => {
       const btn = e.currentTarget;
       try { await navigator.clipboard.writeText(r.rewritten); btn.textContent = "Copied"; }
       catch { btn.textContent = "Select the text to copy"; }
       setTimeout(() => (btn.textContent = "Copy improved prompt"), 1800);
     });
-    $("#recheck-btn", wrap).addEventListener("click", async (e) => {
+    $("#score-btn").addEventListener("click", async (e) => {
       const btn = e.currentTarget;
       if (state.busy) return;
-      btn.dataset.label = "Score the improved prompt";
-      setBusy(btn, true, "Scoring…");
+      $("#error-4").innerHTML = "";
+      busyBtn(btn, true, "Scoring…");
       try {
         const a2 = await post("/api/analyze", { prompt: r.rewritten });
-        const chip = $("#improved-score", wrap);
-        chip.className = `score-chip ${a2.score >= 7 ? "high" : "low"}`;
+        const chip = $("#improved-score");
+        chip.className = `score-chip ${scoreClass(a2.score)}`;
         chip.innerHTML = `${a2.score}<small>/10</small>`;
-        btn.dataset.label = `Scored: up from ${state.analysis.score} to ${a2.score}`;
-        if (a2.score < state.analysis.score) btn.dataset.label = `Scored ${a2.score}/10`;
+        busyBtn(btn, false);
+        btn.textContent = a2.score > s ? `Up from ${s} to ${a2.score}` : `Scored ${a2.score}/10`;
+        btn.disabled = true;
       } catch (err) {
-        btn.dataset.label = "Score the improved prompt";
-        showError(err.message, true);
-      } finally {
-        setBusy(btn, false);
+        busyBtn(btn, false);
+        $("#error-4").innerHTML = errorBox(err.message);
       }
     });
-    if (scroll) wrap.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "start" });
+    $("#again-btn").addEventListener("click", () => {
+      Object.assign(state, { prompt: "", analysis: null, answers: {}, rewrite: null });
+      promptEl.value = ""; updateCount();
+      setStep(1, "active"); setStep(2, "waiting"); setStep(3, "waiting"); setStep(4, "waiting");
+      $("#report").innerHTML = `<p class="waiting-text">Your score and a checklist of what your prompt covers will appear here.</p>`;
+      $("#questions").innerHTML = `<p class="waiting-text">A few quick questions about the gaps will appear here. Answer what you can and skip the rest.</p>`;
+      $("#result").innerHTML = `<p class="waiting-text">Your new prompt will be written here, side by side with your original.</p>`;
+      scrollTo($("#step-1")); promptEl.focus({ preventScroll: true });
+    });
   }
 
   updateCount();
