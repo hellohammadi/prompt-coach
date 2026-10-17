@@ -70,6 +70,14 @@ test("analyze: skips thought parts and clamps score", async () => {
   assert.equal(out.score, 10);
 });
 
+test("analyze: retries once on a Gemma 5xx, keeping JSON mode", async () => {
+  const f = fakeFetch([{ status: 503, data: {} }, reply(sampleAnalysis)]);
+  const out = await analyzePrompt("x", { apiKey: "k", fetchImpl: f, retryDelayMs: 0 });
+  assert.equal(f.calls.length, 2);
+  assert.equal(f.calls[1].body.generationConfig.responseMimeType, "application/json");
+  assert.equal(out.score, 3);
+});
+
 test("analyze: rate limit gives a friendly 429", async () => {
   const f = fakeFetch([{ status: 429, data: {} }]);
   await assert.rejects(analyzePrompt("x", { apiKey: "k", fetchImpl: f }), (e) => e instanceof CoachError && e.status === 429);

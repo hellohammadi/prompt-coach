@@ -100,7 +100,8 @@ export async function askGemmaJson(system, input, opts = {}) {
   const apiKey = opts.apiKey ?? process.env.GEMINI_API_KEY;
   const model = opts.model ?? process.env.GEMMA_MODEL ?? DEFAULT_MODEL;
   const fetchImpl = opts.fetchImpl ?? globalThis.fetch;
-  const timeoutMs = opts.timeoutMs ?? 55000;
+  const timeoutMs = opts.timeoutMs ?? 120000;
+  const retryDelayMs = opts.retryDelayMs ?? 1500;
   if (!apiKey) {
     throw new CoachError("The server is missing its GEMINI_API_KEY.", 500, "no_key");
   }
@@ -112,10 +113,18 @@ export async function askGemmaJson(system, input, opts = {}) {
   ];
 
   let lastError = null;
-  for (const mode of attempts) {
+  let upstreamRetries = 1; // one automatic retry for Gemma's occasional 5xx hiccups
+  for (let i = 0; i < attempts.length; i++) {
+    const mode = attempts[i];
     const { status, data } = await callOnce(
       fetchImpl, url, apiKey, buildBody(system, input, mode), timeoutMs
     );
+    if (status >= 500 && upstreamRetries > 0) {
+      upstreamRetries--;
+      await new Promise((r) => setTimeout(r, retryDelayMs));
+      i--; // same request shape again
+      continue;
+    }
     if (status === 429) {
       throw new CoachError(
         "Gemma's free quota is used up for the moment because many people are trying the demo. Please try again after 15 minutes.",
