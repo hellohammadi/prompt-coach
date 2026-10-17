@@ -118,7 +118,7 @@ export async function askGemmaJson(system, input, opts = {}) {
     );
     if (status === 429) {
       throw new CoachError(
-        "Gemma's free quota is busy right now. Wait a few seconds and try again.",
+        "Gemma's free quota is used up for the moment because many people are trying the demo. Please try again after 15 minutes.",
         429,
         "rate_limited"
       );

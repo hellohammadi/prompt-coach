@@ -67,7 +67,7 @@ header.top { padding: 40px 0 28px; }
 }
 .lede { margin: 12px 0 0; color: var(--muted); max-width: 60ch; font-size: 1.05rem; }
 
-.grid { display: grid; gap: 24px; grid-template-columns: 1fr; padding-bottom: 64px; }
+.grid { display: grid; gap: 24px; grid-template-columns: 1fr; padding-bottom: 32px; }
 @media (min-width: 920px) {
   .grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
   .editor { position: sticky; top: 20px; }
@@ -175,6 +175,20 @@ h3.section { font-family: var(--display); font-size: 1.2rem; margin: 28px 0 10px
 .changes strong { display: block; }
 .changes span { color: var(--muted); font-size: .95rem; }
 
+.notice {
+  margin: 18px 0 0; max-width: 72ch; padding: 10px 14px; border-radius: 10px;
+  background: var(--weak-bg); border-left: 4px solid var(--weak); font-size: .95rem;
+}
+.next { padding: 28px 24px; margin-bottom: 32px; }
+.next h2 { font-family: var(--display); font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -0.01em; margin: 0 0 8px; }
+.next > p { margin: 0; color: var(--muted); max-width: 68ch; }
+.steps { list-style: none; counter-reset: step; padding: 0; margin: 22px 0 0; display: grid; gap: 16px; }
+@media (min-width: 760px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+.steps li { counter-increment: step; border-top: 3px solid var(--accent); padding-top: 12px; }
+.steps li::before { content: counter(step); font-family: var(--display); font-weight: 800; font-size: 1.6rem; color: var(--accent); display: block; line-height: 1; margin-bottom: 6px; }
+.steps strong { display: block; margin-bottom: 2px; }
+.steps span { color: var(--muted); font-size: .95rem; }
+.next .also { margin: 22px 0 0; color: var(--muted); font-size: .95rem; max-width: 68ch; }
 footer { color: var(--muted); font-size: .9rem; padding: 0 0 40px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -188,6 +202,7 @@ footer { color: var(--muted); font-size: .9rem; padding: 0 0 40px; }
   <header class="top">
     <h1 class="brand">Prompt <span class="hl">Coach</span></h1>
     <p class="lede">Paste a prompt you're about to send to an AI. See what it's missing, answer a few quick questions, and get a version that works on the first try.</p>
+    <p class="notice" role="note"><strong>Heads up:</strong> this demo runs on Gemma's free tier. If many people use it at the same time, the free quota can run out. If you see a "quota" message, please try again after 15 minutes.</p>
   </header>
 
   <main class="grid">
@@ -222,6 +237,17 @@ footer { color: var(--muted); font-size: .9rem; padding: 0 0 40px; }
       </div>
     </section>
   </main>
+
+  <section class="panel next" aria-labelledby="next-title">
+    <h2 id="next-title">Coming next: Prompt Coach as a Chrome extension</h2>
+    <p>Right now you copy your prompt here and back. The next step is to bring the coach to where you already write prompts, so it helps you before you press send.</p>
+    <ol class="steps">
+      <li><strong>A button beside your prompt box</strong><span>On ChatGPT, Gemini and Claude, a small Prompt Coach button appears next to the text box as you type.</span></li>
+      <li><strong>The coach opens in a side panel</strong><span>The same score, rubric and quick questions you see here, without leaving the page.</span></li>
+      <li><strong>One click to use the better prompt</strong><span>Accept the rewrite and it replaces your draft in the text box, ready to send.</span></li>
+    </ol>
+    <p class="also">Also planned: a private mode that runs Gemma on your own computer so prompts never leave your machine, and a personal report of the gaps you leave out most often, so you learn to write better prompts over time.</p>
+  </section>
 
   <footer>Runs on Gemma 4, Google's open-weight model. Prompts are sent to the model only to check and rewrite them, and nothing is stored.</footer>
 </div>
