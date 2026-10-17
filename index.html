@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt Coach</title>
+<meta name="description" content="Check your AI prompt against a 7-point rubric, answer a few questions, and get a stronger prompt. Powered by Gemma 4.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232E54E8'/%3E%3Cpath d='M9 22l9-12 2 6 3-2-9 12-2-6z' fill='%23FFE066'/%3E%3C/svg%3E">
+<style>
+:root {
+  --paper: #F3F5F8;
+  --surface: #FFFFFF;
+  --ink: #17202B;
+  --muted: #5B6675;
+  --line: #D7DCE3;
+  --accent: #2E54E8;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E6ECFF;
+  --mark: #FFE066;
+  --good: #1E8A57;
+  --weak: #B86E00;
+  --missing: #C23B2A;
+  --good-bg: #E3F4EA;
+  --weak-bg: #FFF1D6;
+  --missing-bg: #FBE4E0;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #11151B; --surface: #1A2029; --ink: #E6EAF0; --muted: #9AA5B4; --line: #2C3542;
+    --accent: #7E9BFF; --accent-ink: #0E1530; --accent-soft: #1F2A4A; --mark: #B8961E;
+    --good: #4CC28A; --weak: #E3A33B; --missing: #F07462;
+    --good-bg: #16302A; --weak-bg: #33281A; --missing-bg: #3A1F1C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #11151B; --surface: #1A2029; --ink: #E6EAF0; --muted: #9AA5B4; --line: #2C3542;
+  --accent: #7E9BFF; --accent-ink: #0E1530; --accent-soft: #1F2A4A; --mark: #B8961E;
+  --good: #4CC28A; --weak: #E3A33B; --missing: #F07462;
+  --good-bg: #16302A; --weak-bg: #33281A; --missing-bg: #3A1F1C;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 17px/1.55 var(--body);
+}
+button, textarea, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header.top { padding: 40px 0 28px; }
+.brand {
+  font-family: var(--display); font-weight: 800; letter-spacing: -0.02em;
+  font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1; margin: 0;
+}
+.brand .hl {
+  background: linear-gradient(transparent 58%, var(--mark) 58%, var(--mark) 90%, transparent 90%);
+  padding: 0 .08em;
+}
+.lede { margin: 12px 0 0; color: var(--muted); max-width: 60ch; font-size: 1.05rem; }
+
+.grid { display: grid; gap: 24px; grid-template-columns: 1fr; padding-bottom: 64px; }
+@media (min-width: 920px) {
+  .grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; }
+  .editor { position: sticky; top: 20px; }
+}
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.editor { padding: 20px; }
+.editor label { display: block; font-family: var(--display); font-weight: 700; font-size: 1.15rem; margin-bottom: 8px; }
+textarea {
+  width: 100%; min-height: 220px; resize: vertical; padding: 14px 16px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 10px; line-height: 1.5;
+}
+textarea::placeholder { color: var(--muted); }
+.editor-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.count { color: var(--muted); font-size: .9rem; }
+.count.over { color: var(--missing); font-weight: 700; }
+
+.btn {
+  border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer;
+  font-weight: 700; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { filter: brightness(1.07); }
+.btn-ghost { background: transparent; border: 1px solid var(--line); }
+.btn-ghost:hover { background: var(--paper); }
+.btn[disabled] { opacity: .55; cursor: not-allowed; }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.tries { margin-top: 18px; }
+.tries p { margin: 0 0 8px; color: var(--muted); font-size: .92rem; }
+.try {
+  display: block; width: 100%; text-align: left; background: none; border: 1px dashed var(--line);
+  border-radius: 10px; padding: 9px 12px; margin-top: 8px; cursor: pointer; font-size: .95rem;
+}
+.try:hover { border-color: var(--accent); }
+
+.coach { padding: 22px; min-height: 320px; }
+.empty { color: var(--muted); }
+.empty h2 { font-family: var(--display); color: var(--ink); font-size: 1.4rem; margin: 0 0 8px; }
+.empty ol { padding-left: 1.2em; margin: 12px 0 0; }
+.empty li { margin: 6px 0; }
+
+.error {
+  background: var(--missing-bg); color: var(--ink); border-left: 4px solid var(--missing);
+  padding: 12px 14px; border-radius: 8px; margin-bottom: 16px;
+}
+
+/* Score block: the signature element */
+.score { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; align-items: center; }
+.score-num { font-family: var(--display); font-weight: 800; font-size: clamp(4rem, 9vw, 5.6rem); line-height: .9; letter-spacing: -0.04em; }
+.score-num small { font-size: .32em; color: var(--muted); font-weight: 700; letter-spacing: 0; }
+.score-side { min-width: 0; }
+.ptype { display: inline-block; font-size: .85rem; padding: 2px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--ink); }
+.verdict { margin: 8px 0 0; font-size: 1.05rem; }
+.delta { font-size: .95rem; color: var(--good); font-weight: 700; margin-top: 6px; }
+.delta.down { color: var(--missing); }
+
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 20px 0 6px; }
+.seg { height: 10px; border-radius: 3px; }
+.seg.good { background: var(--good); }
+.seg.weak { background: var(--weak); }
+.seg.missing { background: var(--missing); opacity: .85; }
+
+h3.section { font-family: var(--display); font-size: 1.2rem; margin: 28px 0 10px; }
+
+.rubric { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.rubric li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.mark {
+  width: 24px; height: 24px; border-radius: 6px; display: grid; place-items: center;
+  font-weight: 700; font-size: .85rem; margin-top: 1px;
+}
+.mark.good { background: var(--good-bg); color: var(--good); }
+.mark.weak { background: var(--weak-bg); color: var(--weak); }
+.mark.missing { background: var(--missing-bg); color: var(--missing); }
+.dim-name { font-weight: 700; }
+.dim-status { color: var(--muted); font-size: .88rem; margin-left: 6px; }
+.dim-note { margin: 2px 0 0; color: var(--muted); font-size: .95rem; }
+
+.q { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.q:first-of-type { border-top: 1px solid var(--line); }
+.q-text { font-weight: 700; margin: 0 0 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--paper); border-radius: 99px;
+  padding: 7px 14px; cursor: pointer; font-size: .95rem; text-align: left;
+}
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.other {
+  margin-top: 10px; width: 100%; padding: 9px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--paper);
+}
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.hint { color: var(--muted); font-size: .9rem; margin: 10px 0 0; }
+
+.result { margin-top: 28px; padding-top: 4px; }
+.rewritten {
+  white-space: pre-wrap; background: var(--paper); border: 1px solid var(--line);
+  border-left: 4px solid var(--accent); border-radius: 10px; padding: 16px; margin: 0;
+  font: inherit; line-height: 1.6;
+}
+.changes { list-style: none; padding: 0; margin: 14px 0 0; }
+.changes li { padding: 8px 0 8px 14px; border-left: 3px solid var(--mark); margin-bottom: 8px; }
+.changes strong { display: block; }
+.changes span { color: var(--muted); font-size: .95rem; }
+
+footer { color: var(--muted); font-size: .9rem; padding: 0 0 40px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.reveal { animation: reveal .35s ease-out both; }
+@keyframes reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .reveal, .spinner { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 class="brand">Prompt <span class="hl">Coach</span></h1>
+    <p class="lede">Paste a prompt you're about to send to an AI. See what it's missing, answer a few quick questions, and get a version that works on the first try.</p>
+  </header>
+
+  <main class="grid">
+    <section class="panel editor" aria-labelledby="prompt-label">
+      <label id="prompt-label" for="prompt">Your prompt</label>
+      <textarea id="prompt" placeholder="e.g. write a blog post about oranges" maxlength="4000"></textarea>
+      <div class="editor-foot">
+        <span class="count" id="count">0 / 4000</span>
+        <button class="btn btn-primary" id="analyze-btn" type="button">Check my prompt</button>
+      </div>
+      <div class="tries">
+        <p>Or try one of these:</p>
+        <button class="try" type="button">write a blog post about kinnow oranges</button>
+        <button class="try" type="button">fix my python code it's not working</button>
+        <button class="try" type="button">make a logo for my startup</button>
+      </div>
+    </section>
+
+    <section class="panel coach" id="coach" aria-live="polite" aria-busy="false">
+      <div class="empty">
+        <h2>Your coach's notes appear here</h2>
+        <p>Every prompt is checked against seven things a good prompt usually has:</p>
+        <ol>
+          <li><strong>Goal</strong>: what exactly the AI should do</li>
+          <li><strong>Context</strong>: background it can't guess</li>
+          <li><strong>Audience</strong>: who the output is for</li>
+          <li><strong>Output format</strong>: shape and length</li>
+          <li><strong>Constraints</strong>: tone, limits, things to avoid</li>
+          <li><strong>Examples</strong>: what good looks like</li>
+          <li><strong>Success criteria</strong>: how you'll judge it</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer>Runs on Gemma 4, Google's open-weight model. Prompts are sent to the model only to check and rewrite them, and nothing is stored.</footer>
+</div>
+
+<script>
+(() => {
+  const MAX = 4000;
+  const $ = (s, el = document) => el.querySelector(s);
+  const promptEl = $("#prompt");
+  const countEl = $("#count");
+  const analyzeBtn = $("#analyze-btn");
+  const coach = $("#coach");
+
+  const STATUS_TEXT = { good: "Covered", weak: "Vague", missing: "Missing" };
+  const STATUS_MARK = { good: "✓", weak: "~", missing: "✕" };
+  const TYPE_TEXT = {
+    writing: "Writing prompt", coding: "Coding prompt", image: "Image prompt", research: "Research prompt",
+    data: "Data prompt", business: "Business prompt", learning: "Learning prompt", other: "General prompt",
+  };
+
+  const state = { prompt: "", analysis: null, answers: {}, rewrite: null, previousScore: null, busy: false };
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  function updateCount() {
+    const n = promptEl.value.length;
+    countEl.textContent = `${n} / ${MAX}`;
+    countEl.classList.toggle("over", n >= MAX);
+  }
+  promptEl.addEventListener("input", updateCount);
+  promptEl.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") analyze();
+  });
+  document.querySelectorAll(".try").forEach((b) =>
+    b.addEventListener("click", () => { promptEl.value = b.textContent; updateCount(); analyze(); })
+  );
+  analyzeBtn.addEventListener("click", () => analyze());
+
+  async function post(path, payload) {
+    let res;
+    try {
+      res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    } catch {
+      throw new Error("Couldn't reach the server. Check your connection and try again.");
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Something went wrong. Try again.");
+    return data;
+  }
+
+  function setBusy(btn, busy, label) {
+    state.busy = busy;
+    coach.setAttribute("aria-busy", String(busy));
+    if (!btn) return;
+    btn.disabled = busy;
+    btn.innerHTML = busy ? `<span class="spinner" aria-hidden="true"></span>${esc(label)}` : esc(btn.dataset.label || btn.textContent);
+  }
+
+  async function analyze(fromRewrite = false) {
+    const text = promptEl.value.trim();
+    if (state.busy) return;
+    if (!text) { promptEl.focus(); showError("Write a prompt first, or pick one of the examples."); return; }
+    state.previousScore = fromRewrite && state.analysis ? state.analysis.score : null;
+    analyzeBtn.dataset.label = "Check my prompt";
+    setBusy(analyzeBtn, true, "Checking…");
+    try {
+      const analysis = await post("/api/analyze", { prompt: text });
+      state.prompt = text; state.analysis = analysis; state.answers = {}; state.rewrite = null;
+      render();
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setBusy(analyzeBtn, false);
+    }
+  }
+
+  async function rewrite(btn) {
+    if (state.busy || !state.analysis) return;
+    const answers = state.analysis.questions.map((q) => ({ question: q.question, answer: (state.answers[q.id] || "").trim() }));
+    btn.dataset.label = "Rewrite my prompt";
+    setBusy(btn, true, "Rewriting…");
+    try {
+      state.rewrite = await post("/api/rewrite", { prompt: state.prompt, answers, gaps: state.analysis.top_gaps });
+      renderResult(true);
+    } catch (err) {
+      showError(err.message, true);
+    } finally {
+      setBusy(btn, false);
+    }
+  }
+
+  function showError(msg, keep = false) {
+    const box = `<div class="error" role="alert">${esc(msg)}</div>`;
+    const old = $(".error", coach);
+    if (old) old.remove();
+    if (keep && state.analysis) coach.insertAdjacentHTML("afterbegin", box);
+    else if (state.analysis) { render(); coach.insertAdjacentHTML("afterbegin", box); }
+    else { const empty = $(".empty", coach); coach.innerHTML = box; if (empty) coach.appendChild(empty); }
+  }
+
+  function render() {
+    const a = state.analysis;
+    const delta = state.previousScore != null ? a.score - state.previousScore : null;
+    const deltaHtml = delta == null ? "" :
+      `<div class="delta ${delta < 0 ? "down" : ""}">${delta >= 0 ? "Up" : "Down"} from ${state.previousScore} / 10</div>`;
+
+    const strip = a.dimensions.map((d) => `<div class="seg ${d.status}" title="${esc(d.label)}: ${STATUS_TEXT[d.status]}"></div>`).join("");
+    const rubric = a.dimensions.map((d) => `
+      <li>
+        <span class="mark ${d.status}" aria-hidden="true">${STATUS_MARK[d.status]}</span>
+        <div>
+          <span class="dim-name">${esc(d.label)}</span><span class="dim-status">${STATUS_TEXT[d.status]}</span>
+          ${d.note ? `<p class="dim-note">${esc(d.note)}</p>` : ""}
+        </div>
+      </li>`).join("");
+
+    const qs = a.questions.map((q) => `
+      <div class="q" data-qid="${q.id}">
+        <p class="q-text" id="${q.id}-label">${esc(q.question)}</p>
+        <div class="chips" role="group" aria-labelledby="${q.id}-label">
+          ${q.options.map((o) => `<button type="button" class="chip" aria-pressed="false">${esc(o)}</button>`).join("")}
+        </div>
+        <input class="other" type="text" placeholder="Or type your own answer" aria-label="Your own answer to: ${esc(q.question)}">
+      </div>`).join("");
+
+    const questionsBlock = a.questions.length ? `
+      <h3 class="section">A few questions to fill the gaps</h3>
+      ${qs}
+      <div class="actions">
+        <button class="btn btn-primary" id="rewrite-btn" type="button">Rewrite my prompt</button>
+      </div>
+      <p class="hint">Answer what you can. Anything you skip becomes a [placeholder] you can fill in.</p>`
+      : `
+      <h3 class="section">This prompt is in good shape</h3>
+      <div class="actions"><button class="btn btn-ghost" id="rewrite-btn" type="button">Rewrite my prompt</button></div>`;
+
+    coach.innerHTML = `
+      <div class="reveal">
+        <div class="score">
+          <div class="score-num" aria-label="Score ${a.score} out of 10">${a.score}<small>/10</small></div>
+          <div class="score-side">
+            <span class="ptype">${esc(TYPE_TEXT[a.prompt_type] || TYPE_TEXT.other)}</span>
+            ${a.verdict ? `<p class="verdict">${esc(a.verdict)}</p>` : ""}
+            ${deltaHtml}
+          </div>
+        </div>
+        <div class="strip" aria-hidden="true">${strip}</div>
+        <h3 class="section">What your prompt covers</h3>
+        <ul class="rubric">${rubric}</ul>
+        ${questionsBlock}
+        <div id="result"></div>
+      </div>`;
+
+    coach.querySelectorAll(".q").forEach((qEl) => {
+      const id = qEl.dataset.qid;
+      const chips = qEl.querySelectorAll(".chip");
+      const other = $(".other", qEl);
+      chips.forEach((chip) => chip.addEventListener("click", () => {
+        const on = chip.getAttribute("aria-pressed") === "true";
+        chips.forEach((c) => c.setAttribute("aria-pressed", "false"));
+        if (!on) { chip.setAttribute("aria-pressed", "true"); state.answers[id] = chip.textContent; other.value = ""; }
+        else state.answers[id] = "";
+      }));
+      other.addEventListener("input", () => {
+        chips.forEach((c) => c.setAttribute("aria-pressed", "false"));
+        state.answers[id] = other.value;
+      });
+    });
+    const rb = $("#rewrite-btn", coach);
+    if (rb) rb.addEventListener("click", () => rewrite(rb));
+  }
+
+  function renderResult(scroll) {
+    const r = state.rewrite;
+    const slot = $("#result", coach);
+    if (!slot || !r) return;
+    slot.innerHTML = `
+      <div class="result reveal">
+        <h3 class="section">Your improved prompt</h3>
+        <pre class="rewritten" id="rewritten">${esc(r.rewritten)}</pre>
+        <div class="actions">
+          <button class="btn btn-primary" id="copy-btn" type="button">Copy prompt</button>
+          <button class="btn btn-ghost" id="recheck-btn" type="button">Check the new version</button>
+        </div>
+        ${r.changes.length ? `<h3 class="section">What changed and why</h3>
+        <ul class="changes">${r.changes.map((c) => `<li><strong>${esc(c.what)}</strong><span>${esc(c.why)}</span></li>`).join("")}</ul>` : ""}
+      </div>`;
+    $("#copy-btn", slot).addEventListener("click", async (e) => {
+      const btn = e.currentTarget;
+      try { await navigator.clipboard.writeText(r.rewritten); btn.textContent = "Copied"; }
+      catch { btn.textContent = "Select the text to copy"; }
+      setTimeout(() => (btn.textContent = "Copy prompt"), 1800);
+    });
+    $("#recheck-btn", slot).addEventListener("click", () => {
+      promptEl.value = r.rewritten; updateCount();
+      window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      analyze(true);
+    });
+    if (scroll) slot.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+
+  updateCount();
+})();
+</script>
+</body>
+</html>
